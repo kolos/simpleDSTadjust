@@ -19,40 +19,44 @@ simpleDSTadjust::simpleDSTadjust(struct dstRule startRule, struct dstRule endRul
 // Public
 time_t simpleDSTadjust::time(char **abbrev)
 {
- time_t now = ::time(NULL);  // Call the original time() function
- uint8_t year = calcYear(now);
- static time_t dstStart;  // Start of DST in specific Year (seconds since 1970)
- static time_t dstEnd;    // End of DST in listed Year (seconds since 1970)
- 
+  bool _isDst = isDst();
+
+  if(abbrev!=NULL) {
+    *abbrev = _isDst ? dstStartRule.abbrev : dstEndRule.abbrev;
+  }
+
+  return ::time(NULL) + _isDst * dstStartRule.offset;
+}
+
+bool simpleDSTadjust::isDst()
+{
+  time_t now = ::time(NULL);  // Call the original time() function
+  uint8_t year = calcYear(now);
+  static time_t dstStart;  // Start of DST in specific Year (seconds since 1970)
+  static time_t dstEnd;    // End of DST in listed Year (seconds since 1970)
+
   // Init DST variables if necessary
   if(dstYear!=year)
-   {
+  {
     dstYear=year;
     dstStart = calcTime(&dstStartRule);
     dstEnd = calcTime(&dstEndRule);
-	
+
     Serial.println("\nDST Rules Updated:");
     Serial.print("DST Start: ");
     Serial.print(ctime(&dstStart));
     Serial.print("DST End:   ");
     Serial.println(ctime(&dstEnd));
-   }
+  }
 
- bool northTZ = (dstEnd>dstStart)?1:0; // Northern or Southern hemisphere TZ?
+  bool northTZ = (dstEnd>dstStart)?1:0; // Northern or Southern hemisphere TZ?
  
-  if(northTZ && (now >= dstStart && now < dstEnd) || !northTZ && (now < dstEnd || now >= dstStart))
-   {
-    now += dstStartRule.offset;
-	if(abbrev!=NULL)
-     *abbrev = dstStartRule.abbrev;
-   }
-  else
-   {
-    if(abbrev!=NULL)
-	 *abbrev = dstEndRule.abbrev;
-   }
-   
-  return(now);
+  if(northTZ)
+  {
+    return (now >= dstStart && now < dstEnd);
+  }
+
+  return (now < dstEnd || now >= dstStart);
 }
 
 // Private

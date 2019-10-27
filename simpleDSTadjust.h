@@ -39,6 +39,7 @@ class simpleDSTadjust {
   public:
 	simpleDSTadjust(struct dstRule startRule, struct dstRule endRule );
 	time_t time(char **abbrev);
+	bool isDst();
 
   private:
 	uint8_t calcYear(time_t time);
