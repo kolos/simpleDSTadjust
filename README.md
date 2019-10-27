@@ -95,3 +95,8 @@ However the simpleDSTadjust class version of time() has a char pointer argument 
 for obtaining the timezone abbreviation string. If the argument passed is NULL, there is no difference in functionality other
 than the DST adjustment.
 
+### isDst
+```
+bool isDst()
+```
+> Returns whether if DST offset should be applied.
